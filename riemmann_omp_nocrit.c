@@ -1,9 +1,17 @@
+/*
+* Nombre: Daniel Gonzalez
+* Carne: 20293
+* Descripcion: Programa que calcula integrales con sumas de Riemmann concurrentes sin critical section.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
 #include <math.h>
 
-double sum = 0;
+#define NUM_THREADS 10
+
+double res[NUM_THREADS];
 
 double first_function(double x) {
     return x*x;
@@ -18,30 +26,42 @@ double third_function(double x) {
 }
 
 double trapezoide(double a, double b, int n, int num_threads) {
+    // Se definen los trapezoides que calculara ese thread.
     double h = (b-a)/n;
     double n_local = n / num_threads;
     double a_local = a + (omp_get_thread_num() * n_local * h);
     double b_local = a_local + (n_local * h);
     double local_sum = 0.5 * (third_function(a) + third_function(b));
+    // Se hace la suma de los trapezoides.
     for (int i = a_local; i < a_local + n_local; i++) {
         double x = a_local + i * h;
         local_sum += third_function(x);
     }
-    sum += local_sum * h;
+    // Se actualiza el valor computado para este thread en el array.
+    res[omp_get_thread_num()] = local_sum * h;
 }
 
 int main(int argc, char* argv[]) {
     double a = 2.0;
     double b = 10.0;
     int n = 1000000;
-    int num_threads = 10;
+    int num_threads = NUM_THREADS;
+    // Se verifica si se mandaron argumentos en la linea de comandos.
     if (argc == 4) {
         a = strtod(argv[1], NULL);
         b = strtod(argv[2], NULL);
         num_threads = strtod(argv[3], NULL);
     }
 
-    #pragma omp parallel num_threads(num_threads)
-    trapezoide(a, b, n, num_threads);
+    // Se ejecuta la seccion paralela de los trapecios.
+    #pragma omp parallel num_threads(num_threads) 
+    {
+        trapezoide(a, b, n, num_threads);
+    }
+    
+    double sum = 0;
+    for (int i = 0; i < NUM_THREADS; i++) {
+        sum += res[i];
+    }
     printf("La aproximacion de la integral es %f\n", sum);
 }

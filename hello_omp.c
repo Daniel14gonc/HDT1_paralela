@@ -1,3 +1,9 @@
+/*
+* Nombre: Daniel Gonzalez
+* Carne: 20293
+* Descripcion: Programa para ejemplificar uso de API de OpenMP.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>

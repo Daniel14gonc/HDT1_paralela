@@ -1,3 +1,10 @@
+/*
+* Nombre: Daniel Gonzalez
+* Carne: 20293
+* Descripcion: Programa que calcula integrales con sumas de Riemmann concurrentes con critical section.
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
@@ -18,15 +25,18 @@ double third_function(double x) {
 }
 
 double trapezoide(double a, double b, int n, int num_threads) {
+    // Calculo de los trapecios que calculara este thread.
     double h = (b-a)/n;
     double n_local = n / num_threads;
     double a_local = a + (omp_get_thread_num() * n_local * h);
     double b_local = a_local + (n_local * h);
     double local_sum = 0.5 * (third_function(a) + third_function(b));
+    // Calculo de la integral de la funcion.
     for (int i = a_local; i < a_local + n_local; i++) {
         double x = a_local + i * h;
         local_sum += third_function(x);
     }
+    // Se accede a la variable global, restringiendo este acceso a un solo thread a la vez.
     #pragma omp critical
     sum += local_sum * h;
 }
